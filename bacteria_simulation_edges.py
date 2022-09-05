@@ -23,7 +23,7 @@ y = gridsize // 2
 x1 = gridsize // 2
 y1 = gridsize // 2
 
-# celler i interval
+# cell intervals
 
 grid[x, ::5] = 1
 grid[x, ::10] = 2
@@ -68,22 +68,17 @@ def walk(x,y,grid):
             x = xnew
             y = ynew
 def updatefig(i, *args):
-    global x, y, x1, y1  # globalise variable
+    global x, y, x1, y1  # make variable global
     im.set_array(grid)
     location = np.argwhere(grid != 0)
-    steparray = np.array(location)  # convert coordinates to numpyarray
+    steparray = np.array(location)  # convert coordinates to numpy array
     for pos in steparray:
         try:
             walk(*pos, grid)
         except IndexError as identifier:
             pass
-    # location1 = np.argwhere(grid==2)
-    # steparray1= np.array(location1)
     return (im,)
 
-
-# plt.title("E. coli bacteria 1 (Red) vs E coli bacteria 2 (Green) on a lattice grid")
-# plt.imshow(grid)
 
 for _ in tqdm(range(1000)):
     updatefig(1)
@@ -112,7 +107,7 @@ ax3.set_title("Canny filter, $\sigma=3$", fontsize=20)
 
 #################################
 
-# For Animation
+# for Animation
 ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True, frames=1000)
 
 # save as  mpeg
