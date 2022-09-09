@@ -2,17 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import random
-from tqdm import tqdm
 
-# import cv2
-from scipy import ndimage as ndi
+#from scipy import ndimage as ndi
 from skimage import feature
-from itertools import zip_longest
-from scipy.interpolate import *
+#from itertools import zip_longest
+#from scipy.interpolate import *
 
 
 # grid and placement of bacteria
-np.random.seed(2)
 fig = plt.figure()
 gridsize = 100
 grid = np.zeros((gridsize, gridsize))
@@ -80,38 +77,31 @@ def updatefig(i, *args):
     return (im,)
 
 
-for _ in tqdm(range(1000)):
-    updatefig(1)
-
-
 img = grid
-
+# Create b&w edge image from grid
 edges1 = feature.canny(img)
 edges2 = feature.canny(img, sigma=3)
 
-# display results
-fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(8, 3))
-fig, (ax4, ax5, ax6, ax7) = plt.subplots(nrows=1, ncols=4, figsize=(8, 3))
+# Display results
+#fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(8, 3))
+#fig, (ax4, ax5, ax6, ax7) = plt.subplots(nrows=1, ncols=4, figsize=(8, 3))
 
-ax1.imshow(img, cmap=plt.cm.gray)
-ax1.set_title("noisy image", fontsize=20)
+#ax1.imshow(img, cmap=plt.cm.gray)
+#ax1.set_title("Noisy image", fontsize=12)
 
-ax2.imshow(edges1, cmap=plt.cm.gray)
-ax2.set_title("Canny filter, $\sigma=1$", fontsize=20)
+#ax2.imshow(edges1, cmap=plt.cm.gray)
+#ax2.set_title("Canny filter, $\sigma=1$", fontsize=12)
 
-ax3.imshow(edges2, cmap=plt.cm.gray)
-ax3.set_title("Canny filter, $\sigma=3$", fontsize=20)
+#ax3.imshow(edges2, cmap=plt.cm.gray)
+#ax3.set_title("Canny filter, $\sigma=3$", fontsize=12)
+
 #################################
 
 ##      ANIMATION        ##
 
 #################################
 
-# for Animation
-ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True, frames=1000)
-
-# save as  mpeg
-
-# ani.save('bac3.mpeg')
+ani = animation.FuncAnimation(fig, updatefig, interval=2, blit=True, frames=1000)
+ani.save('bac3.mp4', fps = 30)
 
 plt.show()
