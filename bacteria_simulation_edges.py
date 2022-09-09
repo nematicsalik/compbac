@@ -1,17 +1,19 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import random
+import sys
 
-#from scipy import ndimage as ndi
-from skimage import feature
-#from itertools import zip_longest
-#from scipy.interpolate import *
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+import numpy.typing as npt
 
 
 # grid and placement of bacteria
+if len(sys.argv) != 2:
+    gridsize = 100
+#    gridsize = int(input("Please, enter gridsize: "))
+else:
+    gridsize = int(sys.argv[1])
+
 fig = plt.figure()
-gridsize = 100
 grid = np.zeros((gridsize, gridsize))
 
 x = gridsize // 2
@@ -28,43 +30,51 @@ grid[x, ::10] = 2
 
 # setup the animation
 
-im = plt.imshow(grid.T, origin="lower", cmap=plt.cm.get_cmap("brg", 3), animated=True)
+im = plt.imshow(grid.T, origin="lower",
+                cmap=plt.cm.get_cmap("brg", 3), animated=True)
 
 
-#Setting up a random walker
-def walk(x,y,grid):
-    val = np.random.randint(0,10) # probability of cell splitting in a time-interval
+# Setting up a random walker
+
+
+def walk(x: int, y: int, grid: npt.ArrayLike):
+    """Self-avoiding random walker. At a given probability, a random cell will
+    split and expand in a random direction. Cells cannot overlap.
+
+    Args:
+        x,y,: Starting coordinates for bacteria cell
+        grid (npt.ArrayLike): Initial grid setting for bacteria
+    """
+
+    # probability of cell splitting in a time-interval
+    val = np.random.randint(0, 10)
     if val == 1:
-        pos = np.random.randint(1, 9)
-        if pos == 1:
-            xnew = x + 1
-            ynew = y
-        elif pos == 2:
-            xnew = x - 1
-            ynew = y
-        elif pos == 3:
-            xnew = x + 1
-            ynew = y + 1
-        elif pos == 4:
-            xnew = x - 1
-            ynew = y - 1
-        elif pos == 5:
-            xnew = x
-            ynew = y + 1
-        elif pos == 6:
-            xnew = x
-            ynew = y - 1
-        elif pos == 7:
-            xnew = x + 1
-            ynew = y-1
-        else:
-            xnew = x - 1
-            ynew = y + 1
+
+        pos = np.array(
+            [
+                [x + 1, y],
+                [x - 1, y],
+                [x + 1, y + 1],
+                [x - 1, y - 1],
+                [x, y + 1],
+                [x, y - 1],
+                [x + 1, y - 1],
+                [x - 1, y + 1],
+            ]
+        )
+        xnew, ynew = pos[np.random.randint(0, 8)]
         if grid[xnew, ynew] == 0:
             grid[xnew, ynew] = grid[x, y]
             x = xnew
             y = ynew
-def updatefig(i, *args):
+
+
+def updatefig(*args):
+    """Used to update the animation plot with the random walker for each timestep.
+
+    Returns:
+        im, AxesImage: Updates the image data without producing a new plot
+    """
     global x, y, x1, y1  # make variable global
     im.set_array(grid)
     location = np.argwhere(grid != 0)
@@ -78,30 +88,10 @@ def updatefig(i, *args):
 
 
 img = grid
-# Create b&w edge image from grid
-edges1 = feature.canny(img)
-edges2 = feature.canny(img, sigma=3)
 
-# Display results
-#fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(8, 3))
-#fig, (ax4, ax5, ax6, ax7) = plt.subplots(nrows=1, ncols=4, figsize=(8, 3))
 
-#ax1.imshow(img, cmap=plt.cm.gray)
-#ax1.set_title("Noisy image", fontsize=12)
-
-#ax2.imshow(edges1, cmap=plt.cm.gray)
-#ax2.set_title("Canny filter, $\sigma=1$", fontsize=12)
-
-#ax3.imshow(edges2, cmap=plt.cm.gray)
-#ax3.set_title("Canny filter, $\sigma=3$", fontsize=12)
-
-#################################
-
-##      ANIMATION        ##
-
-#################################
-
-ani = animation.FuncAnimation(fig, updatefig, interval=2, blit=True, frames=1000)
-ani.save('bac3.mp4', fps = 30)
-
+# Animation
+ani = animation.FuncAnimation(fig, updatefig, interval=2,
+                              blit=True, frames=1000)
+ani.save("bac3.mp4", fps=30)
 plt.show()
