@@ -1,97 +1,85 @@
-import sys
-
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
-
-
-# grid and placement of bacteria
-if len(sys.argv) != 2:
-    gridsize = 100
-#    gridsize = int(input("Please, enter gridsize: "))
-else:
-    gridsize = int(sys.argv[1])
+import typer
 
 fig = plt.figure()
-grid = np.zeros((gridsize, gridsize))
-
-x = gridsize // 2
-y = gridsize // 2
-
-x1 = gridsize // 2
-y1 = gridsize // 2
-
-# cell intervals
-
-grid[x, ::5] = 1
-grid[x, ::10] = 2
 
 
-# setup the animation
+class Walker:
+    """Modelling bacteria as self-avoiding random walkers on a grid."""
 
-im = plt.imshow(grid.T, origin="lower",
-                cmap=plt.cm.get_cmap("brg", 3), animated=True)
+    def __init__(self, gridsize: int, bactype1: int, bactype2: int, interval: int):
+        """_summary_
 
+        Args:
+            gridsize (int): Size of grid.
+            bactype1 (int): First bacteria species.
+            bactype2 (int): Second bacteria species.
+            interval (int): Interval between bacteria starting point.
+        """
+        self.grid = np.zeros((gridsize, gridsize))
+        self.gridsize = gridsize
+        self.x = gridsize // 2
+        self.y = gridsize // 2
+        self.grid[self.x, ::interval] = bactype1
+        self.grid[self.x, :: interval * 2] = bactype2
 
-# Setting up a random walker
+    def walk(self):
+        """Self-avoiding random walker. At a given probability, a random cell will
+        split and expand in a random direction. Cells cannot overlap.
 
+        Args:
+            x,y,: Starting coordinates for bacteria cell
+            grid (npt.ArrayLike): Initial grid setting for bacteria
+        """
+        x = self.x
+        y = self.y
+        grid = self.grid
+        location = np.argwhere(self.grid != 0)
+        for x, y in location:
+            val = np.random.randint(0, 10)
+            if val == 1:
 
-def walk(x: int, y: int, grid: npt.ArrayLike):
-    """Self-avoiding random walker. At a given probability, a random cell will
-    split and expand in a random direction. Cells cannot overlap.
-
-    Args:
-        x,y,: Starting coordinates for bacteria cell
-        grid (npt.ArrayLike): Initial grid setting for bacteria
-    """
-
-    # probability of cell splitting in a time-interval
-    val = np.random.randint(0, 10)
-    if val == 1:
-
-        pos = np.array(
-            [
-                [x + 1, y],
-                [x - 1, y],
-                [x + 1, y + 1],
-                [x - 1, y - 1],
-                [x, y + 1],
-                [x, y - 1],
-                [x + 1, y - 1],
-                [x - 1, y + 1],
-            ]
-        )
-        xnew, ynew = pos[np.random.randint(0, 8)]
-        if grid[xnew, ynew] == 0:
-            grid[xnew, ynew] = grid[x, y]
-            x = xnew
-            y = ynew
-
-
-def updatefig(*args):
-    """Used to update the animation plot with the random walker for each timestep.
-
-    Returns:
-        im, AxesImage: Updates the image data without producing a new plot
-    """
-    global x, y, x1, y1  # make variable global
-    im.set_array(grid)
-    location = np.argwhere(grid != 0)
-    steparray = np.array(location)  # convert coordinates to numpy array
-    for pos in steparray:
-        try:
-            walk(*pos, grid)
-        except IndexError as identifier:
-            pass
-    return (im,)
+                pos = np.array(
+                    [
+                        [x + 1, y],
+                        [x - 1, y],
+                        [x + 1, y + 1],
+                        [x - 1, y - 1],
+                        [x, y + 1],
+                        [x, y - 1],
+                        [x + 1, y - 1],
+                        [x - 1, y + 1],
+                    ]
+                )
+                xnew, ynew = pos[np.random.randint(0, 8)]
+                if grid[xnew, ynew] == 0:
+                    try:
+                        grid[xnew, ynew] = grid[x, y]
+                    except IndexError as identifier:
+                        pass
 
 
-img = grid
+def main(gridsize: int):
+    mywalker = Walker(100, 1, 2, 5)
+    im = plt.imshow(
+        mywalker.grid.T, origin="lower", cmap=plt.cm.get_cmap("brg", 3), animated=True
+    )
+    typer.echo(f"Gridsize is {gridsize}!")
+
+    def updatefig(*args):
+        """Used to update the animation plot with the random walker for each timestep.
+
+        Returns:
+            im, AxesImage: Updates the image data without producing a new plot
+        """
+        im.set_array(mywalker.grid)
+        mywalker.walk()
+        return (im,)
+    _ = animation.FuncAnimation(fig, updatefig, interval=5, blit=True, frames=1000)
+    plt.show()
 
 
-# Animation
-ani = animation.FuncAnimation(fig, updatefig, interval=2,
-                              blit=True, frames=1000)
-ani.save("bac3.mp4", fps=30)
-plt.show()
+if __name__ == "__main__":
+    typer.run(main)
