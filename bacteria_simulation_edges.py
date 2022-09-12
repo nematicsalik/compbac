@@ -55,10 +55,7 @@ class Walker:
                 )
                 xnew, ynew = pos[np.random.randint(0, 8)]
                 if grid[xnew, ynew] == 0:
-                    try:
-                        grid[xnew, ynew] = grid[x, y]
-                    except IndexError as identifier:
-                        pass
+                    grid[xnew, ynew] = grid[x, y]
 
 
 def main(gridsize: int):
